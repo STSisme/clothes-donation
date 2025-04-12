@@ -1,0 +1,103 @@
+.partnerships-section {
+    background-color: #eef7f3;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 900px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  
+  .partnerships-section h2 {
+    margin-bottom: 1rem;
+    color: #2e7d32;
+  }
+  
+  .partnership-intro p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .partnership-intro ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .partnership-intro li {
+    margin: 0.3rem 0;
+    font-size: 1rem;
+  }
+  
+  .partner-button {
+    background-color: #2e7d32;
+    color: #fff;
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .partner-button:hover {
+    background-color: #1b5e20;
+  }
+  
+  .partner-logos h3 {
+    margin: 2rem 0 1rem;
+    color: #2e7d32;
+  }
+  
+  .logos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .logo-item {
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .logo-item img {
+    max-width: 80%;
+    max-height: 80%;
+  }
+
+  .partnerships-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    padding: 2rem;
+  }
+  
+  .partner-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #eee;
+    padding: 1rem;
+    border-radius: 10px;
+    width: 150px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background-color: #fff;
+  }
+  
+  .partner-logo {
+    width: 100px;
+    height: auto;
+    margin-bottom: 0.5rem;
+  }
+  
+  

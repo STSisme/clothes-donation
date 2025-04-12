@@ -1,0 +1,57 @@
+.disaster-relief-page {
+    font-family: 'Segoe UI', sans-serif;
+    padding: 20px;
+    background-color: #f8f9fa;
+  }
+  
+  .overview h2 {
+    color: #c0392b;
+  }
+  
+  .disaster-list {
+    margin-top: 30px;
+  }
+  
+  .disaster-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 5px solid #e74c3c;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .disaster-card h4 {
+    margin-bottom: 5px;
+  }
+  
+  .disaster-card button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .cta-section {
+    margin-top: 30px;
+  }
+  
+  .cta-section button {
+    margin-right: 10px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .join-distributor-btn {
+    background-color: #2980b9;
+  }
+  
+  .donate-more-btn {
+    background-color: #27ae60;
+  }
+  

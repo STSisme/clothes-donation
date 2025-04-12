@@ -1,0 +1,43 @@
+.how-it-works {
+    text-align: center;
+    padding: 50px;
+    background: #f9f9f9;
+  }
+  
+  .steps-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  .steps:hover {
+    transform: translateY(-5px);
+  }
+  
+  .step {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 220px;
+  }
+  
+  .icon {
+    font-size: 50px;
+    margin-bottom: 10px;
+  }
+  
+  h3 {
+    margin: 10px 0;
+  }
+  
+  p {
+    font-size: 14px;
+    color: #666;
+    justify-self: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
