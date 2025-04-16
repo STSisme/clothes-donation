@@ -1,119 +1,134 @@
-import React, { useState } from 'react';
-import './DonationPage.css';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import donationImage from '../images/0c3d2f0a5134100e32d66f1caa74bb72.jpg';
+import './DonationPage.css';
 
 const DonationPage = () => {
-  const [donorInfo, setDonorInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    location: '',
-  });
-
-  const [clothesDetails, setClothesDetails] = useState({
-    type: '',
-    condition: '',
-    quantity: '',
+  const [donation, setDonation] = useState({
+    donor_id: '',
+    organization_id: '',
+    cloth_type: '',
+    cloth_condition: '',
+    method: '',
+    pickup_address: '',
+    pickup_time: '',
+    note: '',
     image: null,
   });
 
-  const [donationMethod, setDonationMethod] = useState({
-    method: '',
-    timeSlot: '',
-    note: '',
-  });
+  const [organizations, setOrganizations] = useState([]);
 
-  const [donationStatus, setDonationStatus] = useState('submitted');
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.id) {
+      setDonation((prev) => ({ ...prev, donor_id: user.id }));
+    }
+  }, []);
 
-  const handleInputChange = (e) => {
+  useEffect(() => {
+    axios
+      .get('http://localhost:5000/api/organizations')
+      .then((response) => setOrganizations(response.data))
+      .catch((error) => console.error('Error fetching organizations:', error));
+  }, []);
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setDonorInfo((prev) => ({ ...prev, [name]: value }));
+    setDonation((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleClothesDetailsChange = (e) => {
-    const { name, value } = e.target;
-    setClothesDetails((prev) => ({ ...prev, [name]: value }));
+  const handleFileChange = (e) => {
+    setDonation((prev) => ({ ...prev, image: e.target.files[0] }));
   };
 
-  const handleDonationMethodChange = (e) => {
-    const { name, value } = e.target;
-    setDonationMethod((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFormSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append('donorInfo', JSON.stringify(donorInfo));
-    formData.append(
-      'clothesDetails',
-      JSON.stringify({
-        type: clothesDetails.type,
-        condition: clothesDetails.condition,
-        quantity: clothesDetails.quantity,
-        image: clothesDetails.image?.name || '',
-      })
-    );
-    formData.append('donationMethod', JSON.stringify(donationMethod));
-    if (clothesDetails.image) {
-      formData.append('image', clothesDetails.image);
+    formData.append('donor_id', donation.donor_id);
+    formData.append('organization_id', donation.organization_id);
+    formData.append('cloth_type', donation.cloth_type);
+    formData.append('cloth_condition', donation.cloth_condition);
+    formData.append('method', donation.method);
+    formData.append('note', donation.note);
+
+    // Always include pickup fields, even if empty
+    formData.append('pickup_address', donation.method === 'pickup' ? donation.pickup_address : '');
+    formData.append('pickup_time', donation.method === 'pickup' ? donation.pickup_time : '');
+
+    if (donation.image) {
+      formData.append('image', donation.image);
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/donated-clothes', {
+      const response = await fetch('http://localhost:5000/api/donations/register', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          donor_id: donation.donor_id,
+          organization_id: donation.organization_id,
+          cloth_type: donation.cloth_type,
+          cloth_condition: donation.cloth_condition,
+          method: donation.method,
+          pickup_address: donation.method === 'pickup' ? donation.pickup_address : '',
+          pickup_time: donation.method === 'pickup' ? donation.pickup_time : '',
+          note: donation.note,
+          image_url: donation.image ? donation.image.name : '', // or handle image URL properly based on your backend logic
+        }),
       });
+      const data = await response.json();
+      console.log(data);
       
 
-      if (response.ok) {
-        setDonationStatus('in-progress');
-        alert('Thank you for your donation! Your donation is now being processed.');
-      } else {
-        alert('Error submitting donation. Please try again.');
-      }
+      alert('Donation submitted successfully!');
+      setDonation({
+        donor_id: donation.donor_id,
+        organization_id: '',
+        cloth_type: '',
+        cloth_condition: '',
+        method: '',
+        pickup_address: '',
+        pickup_time: '',
+        note: '',
+        image: null,
+      });
     } catch (error) {
-      console.error('Submission error:', error);
-      alert('Server error. Please try again later.');
+      console.error('Error submitting donation:', error.response?.data || error.message);
+      alert('Failed to submit donation');
     }
   };
 
   return (
-    <section className="donation-page">
-      <h1>Give Clothes, Share Hope</h1>
-      <form onSubmit={handleFormSubmit} className="donation-form">
-        {/* Info Section */}
+    <div className="donation-page">
+      <h1>Donate Clothes</h1>
+      <div className="donation-content">
         <div className="info-section">
           <img src={donationImage} alt="Donate Clothes" />
           <p>
-            Every piece of clothing you donate goes a long way in bringing warmth and comfort to someone in need. Let’s build a better, more caring world together.
+            Every piece of clothing you donate brings comfort to someone in need.
+            Let’s build a better world together.
           </p>
-
-          {donationStatus === 'in-progress' && (
-            <div className="thank-you">
-              <h3>Thank You, {donorInfo.name}!</h3>
-              <p>Your donation is now being processed.</p>
-              <button>Track Donation Status</button>
-            </div>
-          )}
         </div>
 
-        {/* Form Section */}
-        <div className="form-section">
-          {/* Donor Info */}
-          <div className="section">
-            <h2>Donor Information</h2>
-            <input type="text" name="name" value={donorInfo.name} onChange={handleInputChange} placeholder="Your Name" required />
-            <input type="email" name="email" value={donorInfo.email} onChange={handleInputChange} placeholder="Your Email" required />
-            <input type="tel" name="phone" value={donorInfo.phone} onChange={handleInputChange} placeholder="Your Phone Number" required />
-            <input type="text" name="location" value={donorInfo.location} onChange={handleInputChange} placeholder="Your Location" required />
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Select Organization</label>
+            <select name="organization_id" value={donation.organization_id} onChange={handleChange} required>
+              <option value="">Select Distributor</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.organization_name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Clothes Details */}
-          <div className="section">
-            <h2>Clothes Details</h2>
-            <select name="type" value={clothesDetails.type} onChange={handleClothesDetailsChange} required>
-              <option value="">Select Clothing Type</option>
+          <div>
+            <label>Cloth Type</label>
+            <select name="cloth_type" value={donation.cloth_type} onChange={handleChange} required>
+              <option value="">Select Cloth Type</option>
               <option value="men">Men</option>
               <option value="women">Women</option>
               <option value="kids">Kids</option>
@@ -121,39 +136,76 @@ const DonationPage = () => {
               <option value="traditional">Traditional</option>
               <option value="accessories">Accessories</option>
             </select>
-            <select name="condition" value={clothesDetails.condition} onChange={handleClothesDetailsChange} required>
+          </div>
+
+          <div>
+            <label>Condition</label>
+            <select name="cloth_condition" value={donation.cloth_condition} onChange={handleChange} required>
               <option value="">Select Condition</option>
               <option value="new">New</option>
               <option value="gently-used">Gently Used</option>
               <option value="needs-repair">Needs Repair</option>
             </select>
-            <input type="number" name="quantity" value={clothesDetails.quantity} onChange={handleClothesDetailsChange} placeholder="Quantity" required min="1" />
-            <input
-              type="file"
-              name="image"
-              accept="image/*"
-              onChange={(e) => setClothesDetails({ ...clothesDetails, image: e.target.files[0] })}
-            />
           </div>
 
-          {/* Donation Method */}
-          <div className="section">
-            <h2>Donation Method</h2>
-            <select name="method" value={donationMethod.method} onChange={handleDonationMethodChange} required>
-              <option value="">Preferred Method</option>
+          <div>
+            <label>Donation Method</label>
+            <select name="method" value={donation.method} onChange={handleChange} required>
+              <option value="">Select Method</option>
               <option value="pickup">Pickup</option>
               <option value="dropoff">Drop-off</option>
             </select>
-            {donationMethod.method === 'pickup' && (
-              <input type="time" name="timeSlot" value={donationMethod.timeSlot} onChange={handleDonationMethodChange} required />
-            )}
-            <textarea name="note" value={donationMethod.note} onChange={handleDonationMethodChange} placeholder="Optional note for pickup person" />
           </div>
 
-          <button type="submit" className="donate-btn">Donate Now</button>
-        </div>
-      </form>
-    </section>
+          {donation.method === 'pickup' && (
+            <>
+              <div>
+                <label>Pickup Time</label>
+                <input
+                  type="datetime-local"
+                  name="pickup_time"
+                  value={donation.pickup_time}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label>Pickup Address</label>
+                <input
+                  type="text"
+                  name="pickup_address"
+                  value={donation.pickup_address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          <div>
+            <label>Note</label>
+            <textarea
+              name="note"
+              value={donation.note}
+              onChange={handleChange}
+              placeholder="Additional note for the pickup person"
+            />
+          </div>
+
+          <div>
+            <label>Upload Image</label>
+            <input
+              type="file"
+              name="image"
+              onChange={handleFileChange}
+              accept="image/*"
+            />
+          </div>
+
+          <button type="submit">Submit Donation</button>
+        </form>
+      </div>
+    </div>
   );
 };
 

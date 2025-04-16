@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
@@ -9,13 +9,20 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const role = user?.role;
+  const navigate = useNavigate(); 
 
   // Debug logs
   useEffect(() => {
     console.log("Header mounted");
     console.log("User from context:", user);
     console.log("Role:", role);
-  }, [user]);
+
+  }, [role, user, navigate]); // Add role, user, and navigate to the dependency array
+
+  const handleLogout = () => {
+    logout(); // Perform logout
+    navigate("/"); // Redirect to home page after logout
+  };
 
   return (
     <header className="header">
@@ -26,33 +33,41 @@ const Header = () => {
         <ul className="nav-list">
           {user ? (
             <>
-              <li className="nav-item">
-                <Link to="/profile">
-                  <FontAwesomeIcon icon={faUserCircle} size="lg" title="User Profile" />
-                </Link>
-              </li>
-              <li className="nav-item">
+
                 {role === "Donor" && (
                   <>
-                    <Link to="/">Donor Dashboard</Link>
-                    <Link to="/all-ngos.js">View NGOs</Link> {/* Updated link */}
+                <li className="nav-item">
+                  <Link to="/UserProfile.js">
+                    <FontAwesomeIcon icon={faUserCircle} size="lg" title="User Profile" />
+                  </Link>
+                </li>
+                    <Link to="/DonorDashboard.jsx">Donor Dashboard</Link>
+                    <Link to="/all-ngos.js">View NGOs</Link>
                   </>
                 )}
+
                 {role === "Distributor" && (
                   <>
-                    <Link to="/distributor-dashboard">Distributor Dashboard</Link>
-                    <Link to="/distributor-requests">Distributor Requests</Link> {/* Updated link */}
+                <li className="nav-item">
+                  <Link to="/UserProfileDistributor.js">
+                    <FontAwesomeIcon icon={faUserCircle} size="lg" title="User Profile" />
+                  </Link>
+                </li>
+                    <Link to="/DistributorDashboard.jsx">Distributor Dashboard</Link>
+                    <Link to="/DisastersRelief.jsx">DisastersRelief</Link>
                   </>
                 )}
+
                 {role === "Admin" && (
                   <>
-                    <Link to="/adminpanel.js">Admin Dashboard</Link>
-                    <Link to="/manage-users">Manage Users</Link> {/* Updated link */}
+                    <Link to="/VerifyDistributors.jsx">Verify Distributors</Link>
+                    <Link to="/ManageDisasters.jsx">Manage Disasters</Link>
+                    <Link to="/UpdateDonations.jsx">Update Donations</Link>
+                    <Link to="/RemoveUsers.jsx">Remove Users</Link>
                   </>
                 )}
-              </li>
               <li className="logout-item">
-                <button className="logout-btn" onClick={logout}>Logout</button>
+                <button className="logout-btn" onClick={handleLogout}>Logout</button>
               </li>
             </>
           ) : (

@@ -1,40 +1,40 @@
 import React from 'react';
 import { Route, Routes, Link } from 'react-router-dom';
-import './AdminPanel.css'; 
+import './AdminPanel.css';
 import VerifyDistributors from './VerifyDistributors';
 import ManageDisasters from './ManageDisasters';
 import UpdateDonations from './UpdateDonations';
 import RemoveUsers from './RemoveUsers';
+import Header from '../components/header';
 
 const AdminPanel = () => {
     return (
+      <>
+        <Header />
         <div className="admin-panel">
-          <div className="sidebar">
-            <ul>
-              <li><Link to="/VerifyDistributors.jsx">Verify Distributors</Link></li>
-              <li><Link to="/ManageDistributors.jsx">Manage Distributors</Link></li>
-              <li><Link to="/UpdateDonations.jsx">Update Donations</Link></li>
-              <li><Link to="/RemoveUsers.jsx">Remove Users</Link></li>
-            </ul>
-          </div>
-          
+
           <div className="admin">
-            <ManageDisasters/>
-            <RemoveUsers/>
-            <UpdateDonations/>
-            <VerifyDistributors/>   
+            <h2>Admin Dashboard</h2>
+            <p>Welcome to the Admin Panel. You can manage the system from the following sections:</p>
+            <ul>
+              <li><Link to="/VerifyDistributors.jsx">Verify and Approve Distributors</Link></li>
+              <li><Link to="/ManageDisasters.jsx">Manage and Update Disaster Information</Link></li>
+              <li><Link to="/UpdateDonations.jsx">Update Donation Status</Link></li>
+              <li><Link to="/RemoveUsers.jsx">Remove Users from the System</Link></li>
+            </ul>
           </div>
 
           <div className="admin-content">
             <Routes>
-            <Route path='/VerifyDistributors.jsx' element={<VerifyDistributors />} />
-            <Route path="/ManageDisasters.jsx" element={<ManageDisasters />} />
-            <Route path="/UpdateDonations.jsx" element={<UpdateDonations />} />
-            <Route path="/RemoveUsers.jsx" element={<RemoveUsers />} />
+              <Route path='/VerifyDistributors.jsx' element={<VerifyDistributors />} />
+              <Route path="/ManageDisasters.jsx" element={<ManageDisasters />} />
+              <Route path="/UpdateDonations.jsx" element={<UpdateDonations />} />
+              <Route path="/RemoveUsers.jsx" element={<RemoveUsers />} />
             </Routes>
           </div>
         </div>
-      );
-    };
-export default AdminPanel;
+      </>
+    );
+};
 
+export default AdminPanel;

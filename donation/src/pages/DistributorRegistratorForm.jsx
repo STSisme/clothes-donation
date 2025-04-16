@@ -9,12 +9,12 @@ const DistributorRegister = () => {
   const [formData, setFormData] = useState({
     organization_name: "",
     organization_type: "",
-    contact_name: "",
+    contact_name: "", // ✅ updated
     phone_number: "",
     email: "",
     password: "",
-    address: "",
-    website: "",
+    address: "", // ✅ updated
+    website: "", // ✅ updated
     description: "",
     areas_of_operation: "",
     verificationDocs: null,
@@ -54,7 +54,7 @@ const DistributorRegister = () => {
 
       if (res.data.success) {
         alert("Registration successful!");
-        navigate("/login"); // Redirect to login after successful registration
+        navigate("/login.js"); // Redirect to login after successful registration
       } else {
         setErrorMessage(res.data.message || "Registration failed.");
       }
@@ -62,6 +62,8 @@ const DistributorRegister = () => {
       console.error("Error response: ", error.response); // log the error response
       const errorMessage = error.response?.data?.error || "Wrong in registration form";
       alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,7 +95,7 @@ const DistributorRegister = () => {
             <input
               className="form-input"
               type="text"
-              name="contact_name"
+              name="contact_name" // ✅ updated
               placeholder="Contact Person Name"
               value={formData.contact_name}
               onChange={handleChange}
@@ -132,7 +134,7 @@ const DistributorRegister = () => {
             />
             <textarea
               className="form-textarea"
-              name="address"
+              name="address" // ✅ updated
               placeholder="Official Address"
               value={formData.address}
               onChange={handleChange}
@@ -140,7 +142,7 @@ const DistributorRegister = () => {
             ></textarea>
             <textarea
               className="form-textarea"
-              name="website"
+              name="website" // ✅ updated
               placeholder="Website/Social Media"
               value={formData.website}
               onChange={handleChange}

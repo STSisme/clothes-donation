@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Header from '../components/header';
 
 const UserProfile = ({ userId, userType }) => {
   const [userData, setUserData] = useState({});
@@ -37,20 +38,21 @@ const UserProfile = ({ userId, userType }) => {
   };
 
   return (
+    <><Header />
     <div className="user-profile">
       <h2>{userType} Profile</h2>
       <p><strong>Username:</strong> {userData.username || userData.contact_name || userData.full_name}</p>
       <p><strong>Email:</strong> {userData.email}</p>
-      <p><strong>Phone:</strong> 
-        {editing ? <input name="phone" value={formState.phone || formState.phone_number} onChange={handleChange} /> 
-                 : (userData.phone || userData.phone_number)}
+      <p><strong>Phone:</strong>
+        {editing ? <input name="phone" value={formState.phone || formState.phone_number} onChange={handleChange} />
+          : (userData.phone || userData.phone_number)}
       </p>
-      <p><strong>Address:</strong> 
-        {editing ? <input name="address" value={formState.address} onChange={handleChange} /> 
-                 : userData.address}
+      <p><strong>Address:</strong>
+        {editing ? <input name="address" value={formState.address} onChange={handleChange} />
+          : userData.address}
       </p>
       <p><strong>Points:</strong> {userData.points || userData.donationPoints || 0}</p>
-      
+
       {/* Display the profile image */}
       {userData.profile_image && (
         <div>
@@ -67,7 +69,7 @@ const UserProfile = ({ userId, userType }) => {
       ) : (
         <button onClick={() => setEditing(true)}>Edit Profile</button>
       )}
-    </div>
+    </div></>
   );
 };
 

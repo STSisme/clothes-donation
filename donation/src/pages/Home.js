@@ -24,9 +24,7 @@ const Home = () => {
           Together we can make a difference. Donate your unused clothes and help those in need.
         </p>
       </div>
-      <DonationStats/>
       <HowToDonate />
-      <DisasterRelief/>
       <Partnerships/>
       <WhyDonate />
       

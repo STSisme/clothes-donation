@@ -7,30 +7,13 @@ import fs from 'fs';
 
 const router = express.Router();
 
-// ✅ MySQL Connection Setup
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '', // your MySQL root password
-  database: 'clothes_donation_db'
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('❌ MySQL connection error:', err);
-    process.exit(1);
-  } else {
-    console.log('✅ Connected to MySQL');
-  }
-});
-
 // ✅ Ensure "uploads" folder exists
 const uploadDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// ✅ Multer Disk Storage Setup
+// ✅ Multer storage config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -46,80 +29,108 @@ const upload = multer({ storage });
 router.post('/register', upload.single('verificationDocs'), async (req, res) => {
   try {
     console.log('📩 Incoming registration request');
+    console.log('📝 Form Data:', req.body);
 
     const {
       organization_name,
-      organization_type,  // Updated to match the column name in DB
-      contact_person_name,
-      phone_number,
+      organization_type,
+      contact_name = '',
+      phone_number = '',
       email,
       password,
-      official_address,
-      website_social_media,
-      description,
-      areas_of_operation
+      address = '',
+      website = '',
+      description = '',
+      areas_of_operation = ''
     } = req.body;
 
-    console.log('📝 Form Data:', req.body);
-
-    // Validate required fields
+    // ✅ Basic validation
     if (!organization_name || !email || !password) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Missing required fields (organization name, email, password).' });
     }
 
-    // Check if the email already exists
+    // ✅ Check if distributor with same email exists
     const [existing] = await db.promise().execute(
       'SELECT * FROM distributors WHERE email = ?', [email]
     );
     if (existing.length > 0) {
-      return res.status(409).json({ error: 'Distributor with this email already exists' });
+      return res.status(409).json({ error: 'Distributor with this email already exists.' });
     }
 
-    // Hash password before saving
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Handle file upload (verificationDocs)
-    const verificationDocs = req.file ? req.file.filename : null;
-    console.log('📎 Uploaded file:', verificationDocs);
+    // ✅ Handle file upload
+    const profile_image = req.file ? req.file.filename : null;
+    console.log('📎 Uploaded file:', profile_image);
 
-    // Insert the distributor's data into the database
+    // ✅ Insert distributor into database
     const insertQuery = `
       INSERT INTO distributors (
-        organization_name, organization_type, contact_person_name, phone_number, email, password,
-        official_address, website_social_media, description, areas_of_operation,
-        verificationDocs, verified, points
+        organization_name, organization_type, contact_name, phone_number, email, password,
+        address, website, description, areas_of_operation,
+        profile_image, verified, points
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.promise().execute(insertQuery, [
       organization_name,
-      organization_type,  // Updated to match the correct column name in DB
-      contact_person_name,
+      organization_type,
+      contact_name,
       phone_number,
       email,
       hashedPassword,
-      official_address,
-      website_social_media,
+      address,
+      website,
       description,
       areas_of_operation,
-      verificationDocs,
-      false,  // verified status (default false)
-      0       // points (default 0)
+      profile_image,     // ✅ renamed correctly
+      false,             // verified
+      0                  // points
     ]);
 
-    console.log('✅ Registration complete:', result.insertId);
-    res.status(201).json({ message: 'Registration successful!', id: result.insertId });
+    console.log('✅ Registration successful. Insert ID:', result.insertId);
+    res.status(201).json({ success: true, message: 'Registration successful!', id: result.insertId });
 
   } catch (err) {
-    console.error('❌ Error during registration:', err);
-    if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ error: 'Distributor with this email already exists' });
-    }
+    console.error('❌ Registration Error:', err.message);
     res.status(500).json({
+      success: false,
       error: 'An error occurred during registration. Please try again later.',
-      details: err.message  // Include detailed error message in response
+      details: err.message // Remove in production
     });
   }
+});
+
+router.get('/admin/distributors', (req, res) => {
+  const sql = 'SELECT id, organization_name, verified FROM distributors';
+  
+  connection.query(sql, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error fetching distributors' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Route to toggle the verification status of a distributor
+router.put('/admin/verify-distributor/:id', (req, res) => {
+  const distributorId = req.params.id;
+  const { verified } = req.body; // The new verification status
+
+  const sql = 'UPDATE distributors SET verified = ? WHERE id = ?';
+
+  connection.query(sql, [verified, distributorId], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error updating distributor verification status' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Distributor not found' });
+    }
+
+    res.status(200).json({ message: 'Verification status updated' });
+  });
 });
 
 export default router;

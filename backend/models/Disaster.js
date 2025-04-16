@@ -1,28 +1,21 @@
-const db = require('../config/db');
+import db from '../config/db';
 
 // Get all disasters
 const getAllDisasters = async () => {
-  const [rows] = await db.execute('SELECT * FROM disasters ORDER BY created_at DESC');
+  const [rows] = await db.execute('SELECT * FROM disasters ORDER BY dateReported DESC'); // Ordering by dateReported
   return rows;
 };
 
-// Add a new disaster
-const addDisaster = async (title, description, location, notify_users = false) => {
+// Add a new disaster (including type, region, severity, notify_users)
+const addDisaster = async (title, description, location, type, region, severity, notify_users = false) => {
   const [result] = await db.execute(
-    'INSERT INTO disasters (title, description, location, notify_users) VALUES (?, ?, ?, ?)',
-    [title, description, location, notify_users]
+    'INSERT INTO disasters (title, description, location, type, region, severity, notify_users) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, description, location, type, region, severity, notify_users]
   );
   return result.insertId;
 };
 
-// Optional: Delete or update disasters, or get by ID
-const getDisasterById = async (id) => {
-  const [rows] = await db.execute('SELECT * FROM disasters WHERE id = ?', [id]);
-  return rows[0];
-};
-
 module.exports = {
   getAllDisasters,
-  addDisaster,
-  getDisasterById
+  addDisaster
 };

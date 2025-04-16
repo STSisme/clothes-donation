@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://localhost:5000/api.login',  // Adjust according to your backend server
+export const api = axios.create({
+  baseURL: 'http://localhost:5000', 
+
 });
 
-export { api };

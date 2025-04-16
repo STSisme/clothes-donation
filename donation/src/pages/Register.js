@@ -41,7 +41,7 @@ const Register = () => {
 
       if (data.success) {
         alert("Registration successful!");
-        navigate("/login"); // Adjusted login path (no `.js`)
+        navigate("/login.js"); // Adjusted login path (no `.js`)
       } else {
         setErrorMessage(data.message || "Registration failed.");
       }

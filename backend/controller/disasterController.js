@@ -1,24 +1,41 @@
-const Disaster = require('../models/disasterModel');
+const db = require('../config/db');
 
-const getDisasters = async (req, res) => {
-  try {
-    const disasters = await Disaster.getAllDisasters();
-    res.json({ success: true, disasters });
-  } catch (error) {
-    console.error('Error fetching disasters:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
+// GET all disasters
+const getDisasters = (req, res) => {
+  db.query('SELECT * FROM disasters ORDER BY dateReported DESC', (err, results) => {
+    if (err) {
+      console.error('Error fetching disasters:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results);
+  });
 };
 
-const createDisaster = async (req, res) => {
-  const { title, description, location, notify_users } = req.body;
-  try {
-    const disasterId = await Disaster.addDisaster(title, description, location, notify_users);
-    res.status(201).json({ success: true, message: 'Disaster created', id: disasterId });
-  } catch (error) {
-    console.error('Error adding disaster:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+// POST a new disaster
+const createDisaster = (req, res) => {
+  const { title, description, location, type, region, severity, notify_users } = req.body;
+
+  if (!title || !description || !location || !type || !region || !severity) {
+    return res.status(400).json({ message: 'Missing required fields' });
   }
+
+  const sql = `
+    INSERT INTO disasters (title, description, location, type, region, severity, notify_users)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const values = [title, description, location, type, region, severity, notify_users || false];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error("Error adding disaster:", err);
+      return res.status(500).json({ message: 'Error adding disaster' });
+    }
+
+    res.status(201).json({ message: 'Disaster added successfully' });
+  });
 };
 
-module.exports = { getDisasters, createDisaster };
+module.exports = {
+  getDisasters,
+  createDisaster,
+};
