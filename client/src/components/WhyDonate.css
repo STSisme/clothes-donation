@@ -1,0 +1,49 @@
+.why-donate {
+    text-align: center;
+    padding: 50px 20px;
+    background-color: #fff;
+  }
+  
+  .why-donate h2 {
+    font-size: 32px;
+    color: #007bff;
+    margin-bottom: 20px;
+  }
+  
+  .reasons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .reason {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    width: 250px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+  }
+  
+  .reason:hover {
+    transform: translateY(-5px);
+  }
+  
+  .icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .reason h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .reason p {
+    font-size: 14px;
+    color: #666;
+  }
+  

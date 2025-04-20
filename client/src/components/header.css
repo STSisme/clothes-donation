@@ -1,0 +1,88 @@
+/* General header styling */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #1E40AF; /* Blue color */
+  color: white;
+}
+
+/* Logo styling */
+.logo a {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Navigation bar styling */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Space between nav items */
+}
+
+/* Navigation list styling */
+.nav ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 16px;
+}
+
+/* Navigation list item styling */
+.nav li {
+  display: inline;
+}
+
+/* Link styling */
+.nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+/* Logout button styling */
+.logout-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  text-decoration: underline;
+}
+
+/* Profile icon styling */
+.profile-icon {
+  font-size: 20px;
+}
+
+/* Register and Login buttons in case of no user */
+.nav li a {
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+/* Aligning the logout button on the same line */
+.nav li.logout-item {
+  margin-left: auto; 
+  margin-top: -13px;
+}
+
+/* Responsive design for small screens */
+@media (max-width: 768px) {
+  .nav ul {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
