@@ -4,9 +4,10 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
-import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext'; // Import useAuth hook
-import L from 'leaflet';  // Import leaflet for custom icons
+import { useAuth } from '../context/AuthContext';
+import api from "../api/apiService";
+import L from 'leaflet'; 
+import endpoints from 'api/endpoints';
 
 const DonationStats = () => {
   const [stats, setStats] = useState({
@@ -15,67 +16,58 @@ const DonationStats = () => {
     peopleHelped: 0,
   });
 
-  const [distributors, setDistributors] = useState([]); // State for distributor locations
-  const { user } = useAuth(); // Access user object from AuthContext
-  const userId = user ? user.id : null; // Extract userId from user object
+  const [distributors, setDistributors] = useState([]);
+  const { user } = useAuth();
+  const userId = user ? user.id : null; 
 
   useEffect(() => {
     if (!userId) {
       console.log("User ID is not available");
       return;
     }
-
-    const fetchUserDonations = async () => {
+  
+    const fetchStatsAndLocations = async () => {
       try {
-        const response = await api.get(`/api/donations/donor/${userId}`);
-        const userDonations = response.data;
-
+        const donationsRes = await api.get(endpoints.donations.getAllByDonor(user.id));
+        const userDonations = donationsRes.data;
+  
+        const distributionsRes = await api.get(endpoints.distributions.getByDonor(user.id));
+        const userDistributions = distributionsRes.data;
+  
         let donatedCount = 0;
         let distributedCount = 0;
-        let helpedPeople = 0;
-        const distributorLocations = [];
-
+        const markers = [];
+  
         for (const donation of userDonations) {
           if (donation.status === 'approved') donatedCount++;
-          if (donation.status === 'Distributed') distributedCount++;
-          if (donation.peopleHelped) helpedPeople += donation.peopleHelped;
-
-          // Collect distributor locations for approved donations
-          if (donation.status === 'approved' && donation.organization_id) {
-            // Query the organization for the location using the organization_id
-            const orgResponse = await api.get(`/api/organizations/${donation.organization_id}`);
-            const organization = orgResponse.data;
-            
-            if (organization && organization.latitude && organization.longitude) {
-              distributorLocations.push({
-                latitude: organization.latitude,
-                longitude: organization.longitude,
-                distributor_name: organization.name,  // Assuming the organization has a 'name' field
-              });
-            }
+          if (donation.status === 'distributed') distributedCount++;
+        }
+  
+        for (const dist of userDistributions) {
+          const { location } = dist;
+          if (location?.latitude && location?.longitude) {
+            markers.push({
+              latitude: location.latitude,
+              longitude: location.longitude,
+              distributor_name: location.name,
+            });
           }
         }
-
+  
         setStats({
           donated: donatedCount,
           distributed: distributedCount,
-          peopleHelped: helpedPeople,
         });
-
-        setDistributors(distributorLocations);
+  
+        setDistributors(markers);
       } catch (error) {
-        console.error('Error fetching user donations:', error);
+        console.error('Error fetching data for donation stats:', error);
       }
     };
-
-    fetchUserDonations();
-
-    const interval = setInterval(() => {
-      fetchUserDonations(); // refresh every 10 seconds
-    }, 10000);
-
-    return () => clearInterval(interval);
+  
+    fetchStatsAndLocations();
   }, [userId]);
+  
 
   return (
     <section className="donation-stats-section">
@@ -84,15 +76,11 @@ const DonationStats = () => {
       <div className="stats">
         <div className="stat-box">
           <h3>{stats.donated}</h3>
-          <p>Clothes Donated</p>
+          <p>Donations Made</p>
         </div>
         <div className="stat-box">
           <h3>{stats.distributed}</h3>
-          <p>Clothes Distributed</p>
-        </div>
-        <div className="stat-box">
-          <h3>{stats.peopleHelped}</h3>
-          <p>People Helped</p>
+          <p>Donations Distributed</p>
         </div>
       </div>
 
@@ -103,13 +91,12 @@ const DonationStats = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Render markers for each distributor location */}
           {distributors.map((distributor, index) => (
             <Marker
               key={index}
               position={[distributor.latitude, distributor.longitude]}
               icon={new L.Icon({
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png', // Customize icon if needed
+                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41],
                 popupAnchor: [1, -34],

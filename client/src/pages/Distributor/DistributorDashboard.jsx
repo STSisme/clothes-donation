@@ -5,7 +5,7 @@ import AnalyticsReports from '../../components/AnalyticsReport';
 import NotificationsCenter from '../../components/NotificationCenter';
 import ProfileVerification from '../../components/ProfileVerification';
 import './DistributorDashboard.css';
-import Header from '../../components/header';
+import Header from '../../components/Header';
 
 const DistributorDashboard = () => {
   return (

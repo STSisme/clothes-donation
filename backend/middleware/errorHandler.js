@@ -4,7 +4,6 @@ const errorHandler = (err, req, res, next) => {
   let message = 'Something went wrong!';
   let statusCode = 500;
 
-  // MySQL-specific error handling
   if (err.code === 'ER_DUP_ENTRY') {
     message = 'Duplicate entry. This data already exists.';
     statusCode = 400;

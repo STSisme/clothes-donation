@@ -1,41 +1,244 @@
-// disasterRoutes.js
 import express from 'express';
-import { connection } from '../config/db.js';
+import { connection as db } from '../config/db.js';
+import sendEmail from '../config/nodeMailer.js';
 
 const router = express.Router();
 
-// GET all disasters
-router.get('/', (req, res) => {
-  connection.query('SELECT * FROM disasters ORDER BY dateReported DESC', (err, results) => {
-    if (err) {
-      console.error('Error fetching disasters:', err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-    res.json(results);
-  });
+router.get("", async (req, res) => {
+  const query = "SELECT * FROM disasters ORDER BY dateReported DESC";
+  try {
+    const [response] = await db.query(query);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching disasters",
+      error: error.message,
+    });
+  }
 });
 
-// POST new disaster
-router.post('/', (req, res) => {
-  const { title, description, location, type, region, severity, notify_users } = req.body;
-  const dateReported = new Date();
+router.get("/detail/:id", async (req, res) => {
+  const { id } = req.params;
 
-  if (!title || !description || !location || !type || !region || !severity) {
-    return res.status(400).json({ error: 'All fields are required.' });
+  try {
+    const query = "SELECT * FROM disasters WHERE id = ?";
+    const [result] = await db.query(query, [id]);
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Disaster not found.",
+      });
+    }
+
+    return res.status(200).json(result[0]);
+  } catch (error) {
+    console.error("Error fetching disaster detail:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching disaster detail.",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/create", async (req, res) => {
+  const {
+    title,
+    description,
+    location,
+    region,
+    severity,
+    type,
+    latitude,
+    longitude,
+  } = req.body;
+
+  if (!title || !description || !location || !region || !severity || !type) {
+    return res.status(400).json({
+      success: false,
+      message: "All fields are required.",
+    });
   }
 
-  const sql = `
-    INSERT INTO disasters (title, description, location, type, region, severity, notify_users, dateReported)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  try {
+    const query = `
+      INSERT INTO disasters (title, description, location, region, severity, type, latitude, longitude, dateReported)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+    const values = [
+      title,
+      description,
+      location,
+      region,
+      severity,
+      type,
+      latitude || null,
+      longitude || null,
+    ];
 
-  connection.query(sql, [title, description, location, type, region, severity, notify_users, dateReported], (err, result) => {
-    if (err) {
-      console.error('Error inserting disaster:', err);
-      return res.status(500).json({ error: 'Database error' });
+    const [result] = await db.query(query, values);
+
+    if (result.affectedRows > 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Disaster created successfully.",
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create disaster.",
+      });
     }
-    res.status(201).json({ message: 'Disaster added successfully', id: result.insertId });
-  });
+  } catch (error) {
+    console.error("Disaster creation error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while creating disaster.",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/notify/:userId/:disasterId", async (req, res) => {
+  const distributorId = req.params.userId;
+  const disasterId  = req.params.disasterId;
+
+  try {
+    const [organizationRes] = await db.query("SELECT organization_id FROM users WHERE id = ?", [distributorId]);
+    const [disasterRes] = await db.query("SELECT * FROM disasters WHERE id = ?", [disasterId]);    
+
+    const disaster = disasterRes[0];
+
+    const [users] = await db.query(`
+      SELECT DISTINCT u.id, u.email
+      FROM users u
+      JOIN donations d ON d.donor_id = u.id
+      WHERE d.organization_id = ?
+    `, [organizationRes[0].organization_id]);
+
+    const notifications = users.map((user) => [
+      "Donation Request: Disaster Relief",
+      `A disaster has occurred. We need your support again.`,
+      disasterId,
+      user.id,
+    ]);    
+
+    await db.query(`
+      INSERT INTO notifications (title, message, disaster_id, user_id)
+      VALUES ?
+    `, [notifications]);
+
+    users.forEach((user) => {
+      sendEmail(user.email, {
+        subject: "Disaster Relief Needed",
+        body: `Hello, a disaster, ${disaster.title} has occurred and your help is needed.
+          Details:
+        
+          ${disaster.description}
+
+          Please consider donating again.
+        `,
+      });
+    });
+
+    await db.query(`UPDATE disasters SET notify_users = 1 WHERE id = ?`, [disasterId]);
+
+    res.status(200).json({ message: "Notifications sent." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to notify users." });
+  }
+});
+
+
+router.put("/update/:id", async (req, res) => {
+  const { id } = req.params;
+  const {
+    title,
+    description,
+    location,
+    region,
+    severity,
+    type,
+    latitude,
+    longitude,
+  } = req.body;
+
+  if (!title || !description || !location || !region || !severity || !type) {
+    return res.status(400).json({
+      success: false,
+      message: "All fields are required.",
+    });
+  }
+
+  try {
+    const query = `
+      UPDATE disasters
+      SET title = ?, description = ?, location = ?, region = ?, severity = ?, type = ?, latitude = ?, longitude = ?
+      WHERE id = ?
+    `;
+    const values = [
+      title,
+      description,
+      location,
+      region,
+      severity,
+      type,
+      latitude || null,
+      longitude || null,
+      id,
+    ];
+
+    const [result] = await db.query(query, values);
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Disaster updated successfully.",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Disaster not found or no changes made.",
+      });
+    }
+  } catch (error) {
+    console.error("Disaster update error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while updating disaster.",
+      error: error.message,
+    });
+  }
+});
+
+router.delete("/delete/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = "DELETE FROM disasters WHERE id = ?";
+    const [result] = await db.query(query, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Disaster not found or already deleted.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Disaster deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error deleting disaster:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while deleting disaster.",
+      error: error.message,
+    });
+  }
 });
 
 export default router;

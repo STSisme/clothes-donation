@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './MyDonations.css';
-import Header from '../../components/header';
+import Header from '../../components/Header';
 
 const MyDonations = () => {
   const [donations, setDonations] = useState([]);

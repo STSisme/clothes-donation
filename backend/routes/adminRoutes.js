@@ -80,7 +80,7 @@ router.get('/dashboard', authenticateToken, authorizeRoles("admin"), (req, res) 
 // Get all distributors (Public)
 // Fetch all distributors
 router.get('/distributors', (req, res) => {
-  connection.query('SELECT * FROM distributors', (err, results) => {
+  db.query('SELECT * FROM distributors', (err, results) => {
     if (err) {
       console.error('Error fetching distributors:', err);
       return res.status(500).json({ error: 'Internal server error' });
@@ -96,7 +96,7 @@ router.put('/verify-distributor/:id', (req, res) => {
 
   const sql = 'UPDATE distributors SET verified = ? WHERE id = ?';
 
-  connection.query(sql, [verified, id], (err, result) => {
+  db.query(sql, [verified, id], (err, result) => {
     if (err) {
       console.error('Error updating distributor verification:', err);
       return res.status(500).json({ error: 'Failed to update distributor verification' });
@@ -117,7 +117,7 @@ router.delete('/admin/remove-donor/:id', (req, res) => {
 
   const sql = 'DELETE FROM donors WHERE id = ?';
 
-  connection.query(sql, [donorId], (err, result) => {
+  db.query(sql, [donorId], (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Error deleting donor' });
     }
@@ -136,7 +136,7 @@ router.delete('/admin/remove-distributor/:id', (req, res) => {
 
   const sql = 'DELETE FROM distributors WHERE id = ?';
 
-  connection.query(sql, [distributorId], (err, result) => {
+  db.query(sql, [distributorId], (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Error deleting distributor' });
     }

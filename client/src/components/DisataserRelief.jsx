@@ -29,7 +29,7 @@ const DisasterRelief = () => {
         Support our ongoing disaster relief efforts. Your donations make a direct impact during emergencies.
       </p>
 
-      <Link to="/Donate.js">
+      <Link to="/dashboard/donor/donations/donate">
         <button className="donate-btn">Donate for Disaster Relief</button>
       </Link>
 

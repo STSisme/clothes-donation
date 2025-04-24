@@ -13,7 +13,7 @@ const Partnerships = () => {
     { name: 'DFoundation', img: NGOlogo3 },
     { name: ' SSG Help', img: NGOlogo4 },
   ];
-  
+
 
   return (
     <section className="partnerships-section">
@@ -25,7 +25,7 @@ const Partnerships = () => {
         </p>
         <p>Let's collaborate to make a difference—together!</p>
         <Link to="/DistributorRegistrationForm.jsx">
-        <button className="partner-button">Become a Partner</button>
+          <button className="partner-button">Become a Partner</button>
         </Link>
       </div>
 

@@ -4,7 +4,7 @@ import './AdminPanel.css';
 import Header from '../../components/header';
 import VerifyDistributors from './VerifyDistributors';
 import ManageDisasters from './ManageDisasters';
-import UpdateDonations from '../Donor/UpdateDonations';
+import UpdateDonations from '../Distributor/UpdateDonations';
 import RemoveUsers from './RemoveUsers';
 
 
