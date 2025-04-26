@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, Navigate, useParams } from "react-router-dom";
+import { useNavigate, Link, Navigate, useParams, useLocation } from "react-router-dom";
 import registerImage from "../images/clothing-donation-lettering-and-illustration-isolated-on-white-background-set-of-clothes-accessories-and-shoes-for-charity-mindful-lifestyle-vector.jpg";
 import TextInput from "components/form/TextInput";
 import PhoneNumberInput from "components/form/PhoneNumberInput";
@@ -12,6 +12,10 @@ import endpoints from "api/endpoints";
 const Register = ({ isDistributor = false }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated, register } = useAuth();
+
+  const location = useLocation();
+
+  isDistributor = location.pathname.includes("/distributor");  
 
   const [formData, setFormData] = useState({
     full_name: "",
