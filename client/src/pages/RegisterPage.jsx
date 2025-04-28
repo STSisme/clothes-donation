@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link, Navigate, useParams, useLocation } from "react-router-dom";
-import registerImage from "../images/clothing-donation-lettering-and-illustration-isolated-on-white-background-set-of-clothes-accessories-and-shoes-for-charity-mindful-lifestyle-vector.jpg";
+import registerImage from "../images/Screenshot 2025-04-27 112541.png";
 import TextInput from "components/form/TextInput";
 import PhoneNumberInput from "components/form/PhoneNumberInput";
 import PasswordInput from "components/form/PasswordInput";
@@ -14,7 +14,7 @@ const Register = ({ isDistributor = false }) => {
   const { user, isAuthenticated, register } = useAuth();
 
   const location = useLocation();
-
+  
   isDistributor = location.pathname.includes("/distributor");  
 
   const [formData, setFormData] = useState({
@@ -45,14 +45,14 @@ const Register = ({ isDistributor = false }) => {
     if (isDistributor) {
       fetchOrganizations();
     }
-  }, [isDistributor]);
+  }, [isDistributor]);  
 
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
-  };
+  };  
 
   if (isAuthenticated) {
     return <Navigate to={`/dashboard/${user.role}`} />
@@ -74,6 +74,7 @@ const Register = ({ isDistributor = false }) => {
 
     try {
       const user = await register(formData);
+      console.log(formData);
 
       alert("Registration successful!");
       navigate(`/dashboard/${user.role}`);

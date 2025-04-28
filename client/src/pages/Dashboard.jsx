@@ -10,6 +10,7 @@ import {
   faBoxOpen
 } from '@fortawesome/free-solid-svg-icons';
 
+import Banner from "components/Banner";
 import DonationStats from 'components/DonationStats';
 import { useAuth } from 'context/AuthContext';
 import DisasterRelief from 'components/DisataserRelief';
@@ -23,6 +24,7 @@ const Dashboard = () => {
 
   return (
     <>
+    <Banner/>
       <section className="dashboard container py-5">
         <h1 className="text-center mb-4">Welcome, {user?.full_name || 'User'}!</h1>
 

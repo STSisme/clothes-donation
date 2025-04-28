@@ -127,6 +127,7 @@ const Disasters = () => {
                                         >
                                             {loading ? "Sending..." : "Notify Donors"}
                                         </button>
+                                        
                                     )}
                                 </div>
                             </td>
