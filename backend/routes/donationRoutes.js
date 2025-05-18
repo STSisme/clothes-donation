@@ -40,14 +40,14 @@ router
       LEFT JOIN donation_items di ON d.id = di.donation_id
       WHERE d.status = 'approved' AND di.status = 'donated'
     `;
-  
+
     try {
       const [rows] = await db.query(donationQuery);
-  
+
       const donationsMap = {};
       for (const row of rows) {
         const donationId = row.id;
-  
+
         if (!donationsMap[donationId]) {
           donationsMap[donationId] = {
             id: row.id,
@@ -62,7 +62,7 @@ router
             items: [],
           };
         }
-  
+
         if (row.item_id) {
           donationsMap[donationId].items.push({
             id: row.item_id,
@@ -75,12 +75,14 @@ router
           });
         }
       }
-  
+
       const donations = Object.values(donationsMap);
       res.status(200).json(donations);
     } catch (error) {
       console.error("Error fetching donations with items", error);
-      res.status(500).json({ message: "Failed to fetch donations with items." });
+      res
+        .status(500)
+        .json({ message: "Failed to fetch donations with items." });
     }
   })
   .get("/organizations/:id", async (req, res) => {
@@ -111,7 +113,7 @@ router
     const id = req.params.id;
 
     const query = `
-      SELECT d.*, 
+      SELECT d.*, o.* ,
       u.full_name AS donor_name, 
       o.name AS organization_name, 
       COALESCE(SUM(di.count), 0) AS total_items
@@ -123,7 +125,7 @@ router
       GROUP BY d.id
   `;
     try {
-      const response = await db.query(query, [id]);
+      const response = await db.query(query, [id]);      
       res.status(200).json(response[0]);
     } catch (error) {
       res.status(500).json({
@@ -158,6 +160,21 @@ router
     } catch (error) {
       console.error("Error fetching donation detail:", error);
       res.status(500).json({ message: "Failed to retrieve donation detail" });
+    }
+  })
+  .get("/leaderboard", async (req, res) => {
+    const query =
+      "SELECT id, full_name AS name, points FROM users WHERE role='donor' ORDER BY points DESC";
+
+    try {
+      const [rows] = await db.query(query);
+      res.status(200).json(rows);
+    } catch (e) {
+      console.error("Error fetching leaderboard:", e);
+      res.status(500).json({
+        message: "Failed To Retrieve Data",
+        error: e.message,
+      });
     }
   });
 
@@ -210,14 +227,18 @@ router.post("/create", upload.any(), async (req, res) => {
       }
     }
 
+    let totalPoints = 0;
+
     for (let i = 0; i < parsedItems.length; i++) {
       const item = parsedItems[i];
       const imageFilename = imageMap[i] || null;
 
       await db.query(
-        `INSERT INTO donation_items 
-        (donation_id, cloth_for, gender, season, cloth_condition, count, image_url) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `
+          INSERT INTO donation_items 
+          (donation_id, cloth_for, gender, season, cloth_condition, count, image_url) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+          `,
         [
           donationId,
           item.cloth_for,
@@ -228,9 +249,30 @@ router.post("/create", upload.any(), async (req, res) => {
           imageFilename,
         ]
       );
+
+      let pointsPerItem = 0;
+      if (item.cloth_condition === "needs_repair") pointsPerItem = 5;
+      else if (item.cloth_condition === "gently_used") pointsPerItem = 10;
+      else if (item.cloth_condition === "new") pointsPerItem = 15;
+
+      totalPoints += pointsPerItem * item.count;
     }
 
-    res.status(201).json({ message: "Donation created successfully." });
+    await db.query(
+      `
+        UPDATE users 
+        SET points = COALESCE(points, 0) + ? 
+        WHERE id = ?
+        `,
+      [totalPoints, donor_id]
+    );
+
+    res
+      .status(201)
+      .json({
+        message: "Donation created successfully.",
+        awarded_points: totalPoints,
+      });
   } catch (err) {
     console.error("Error creating donation:", err);
     res.status(500).json({ error: "Failed to create donation." });
@@ -279,15 +321,15 @@ router
         `SELECT id, image_url FROM donation_items WHERE donation_id = ?`,
         [donationId]
       );
-  
+
       const existingItemMap = {};
       for (const row of existingItemsRes) {
         existingItemMap[row.id] = row.image_url;
       }
       const existingItemIds = Object.keys(existingItemMap).map(Number);
-  
+
       const parsedItems = typeof items === "string" ? JSON.parse(items) : items;
-  
+
       const imageMap = {};
       for (const file of req.files) {
         const match = file.fieldname.match(/^items\[(\d+)\]\[image\]$/);
@@ -296,12 +338,12 @@ router
           imageMap[index] = file.filename;
         }
       }
-  
+
       const receivedItemIds = [];
       for (let i = 0; i < parsedItems.length; i++) {
         const item = parsedItems[i];
         const imageFilename = imageMap[i] || null;
-  
+
         if (item.id) {
           await db.query(
             `UPDATE donation_items SET 
@@ -340,13 +382,15 @@ router
         }
       }
 
-      const idsToDelete = existingItemIds.filter(id => !receivedItemIds.includes(id));
+      const idsToDelete = existingItemIds.filter(
+        (id) => !receivedItemIds.includes(id)
+      );
       if (idsToDelete.length > 0) {
         await db.query(
           `DELETE FROM donation_items WHERE id IN (?) AND donation_id = ?`,
           [idsToDelete, donationId]
         );
-      }  
+      }
 
       res
         .status(200)

@@ -1,5 +1,5 @@
 import express from "express";
-import { connection as db } from "../../../FYP/clothes-donation/backend/config/db.js";
+import { connection as db } from "../config/db.js";
 
 const router = express.Router();
 

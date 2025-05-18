@@ -21,9 +21,6 @@ router.post("/register", async (req, res) => {
     } = req.body;
 
     const userRole = role || "donor";
-
-    console.log(req.body);
-    
     
     if (
       userRole === "donor" &&

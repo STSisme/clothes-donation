@@ -9,7 +9,6 @@ import {connection as db, connectDB} from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js"
 import donationRoutes from "./routes/donationRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
 import disasterRoutes from "./routes/disasterRoutes.js";
 import organizationRoutes from "./routes/organizationRoutes.js";
 import distributionRoutes from "./routes/distributionRoutes.js";
@@ -42,7 +41,6 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/disasters", disasterRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/donations", donationRoutes);
