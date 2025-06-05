@@ -42,17 +42,26 @@ const Disasters = () => {
         }
     };
 
-    const handleNotify = async (userId, disasterId) => {
-        try {
-            setNotificationLoading(true);
-            await api.post(endpoints.disasters.notify(userId, disasterId));
-            await fetchDisasters();
-        } catch (err) {
-            setError("Failed to send notification.");
-            console.error(err);
-        } finally {
-            setNotificationLoading(false);
-        }
+    const handleNotify = async (disasterId) => {
+    console.log("🔔 Notify triggered", "User ID:", user?.id, "Disaster ID:", disasterId);
+
+    if (!user?.id || !disasterId) {
+        alert("❌ Missing user or disaster ID");
+        return;
+    }
+
+    try {
+        setNotificationLoading(true);
+        const res = await api.post(endpoints.disasters.notify(user.id, disasterId));
+        console.log("✅ Backend Response:", res.data);
+        alert(res.data.message || "Distributors notified!");
+        await fetchDisasters();
+    } catch (err) {
+        console.error("❌ Notification failed:", err);
+        setError("Failed to send notification.");
+    } finally {
+        setNotificationLoading(false);
+    }
     };
 
     useEffect(() => {
@@ -155,13 +164,12 @@ const Disasters = () => {
                                                 </button>
                                             </>
                                         )}
-                                        {isDistributor && !disaster.notify_users && (
+                                        {isDistributor && !disaster.notify_users && (                                   
                                             <button
                                                 className="btn btn-sm btn-warning"
-                                                disabled={notificationLoading}
-                                                onClick={() => handleNotify(user.id, disaster.id)}
+                                                onClick={() => handleNotify(disaster.id)}
                                             >
-                                                {notificationLoading ? "Sending..." : "Notify Donors"}
+                                                Notify Donors
                                             </button>
                                         )}
                                     </div>

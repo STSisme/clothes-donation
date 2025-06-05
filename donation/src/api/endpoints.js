@@ -37,7 +37,7 @@ const endpoints = {
     detail: (id) => `/disasters/detail/${id}`,
     update: (id) => `/disasters/update/${id}`,
     delete: (id) => `/disasters/delete/${id}`,
-    notify: (userId, disasterId) => `/disasters/notify/${userId}/${disasterId}`
+    notify: (userId, disasterId) => `/disasters/notify/${userId}/${disasterId}`,
   },
   distributions: {
     all: (id) => `/distributions/all/${id}`,

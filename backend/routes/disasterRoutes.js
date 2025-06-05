@@ -102,54 +102,81 @@ router.post("/create", async (req, res) => {
 
 router.post("/notify/:userId/:disasterId", async (req, res) => {
   const distributorId = req.params.userId;
-  const disasterId  = req.params.disasterId;
+  const disasterId = req.params.disasterId;
 
   try {
-    const [organizationRes] = await db.query("SELECT organization_id FROM users WHERE id = ?", [distributorId]);
-    const [disasterRes] = await db.query("SELECT * FROM disasters WHERE id = ?", [disasterId]);    
+    console.log("🔔 Notify API Hit:", { distributorId, disasterId });
+
+    const [orgRes] = await db.query(
+      "SELECT organization_id FROM users WHERE id = ?",
+      [distributorId]
+    );
+    if (!orgRes.length)
+      return res.status(400).json({ message: "Distributor not found." });
+
+    const orgId = orgRes[0].organization_id;
+
+    const [disasterRes] = await db.query(
+      "SELECT * FROM disasters WHERE id = ?",
+      [disasterId]
+    );
+    if (!disasterRes.length)
+      return res.status(404).json({ message: "Disaster not found." });
 
     const disaster = disasterRes[0];
 
-    const [users] = await db.query(`
+    const [users] = await db.query(
+      `
       SELECT DISTINCT u.id, u.email
       FROM users u
       JOIN donations d ON d.donor_id = u.id
       WHERE d.organization_id = ?
-    `, [organizationRes[0].organization_id]);
+    `,
+      [orgId]
+    );
+
+    console.log("👥 Users to Notify:", users);
 
     const notifications = users.map((user) => [
       "Donation Request: Disaster Relief",
-      `A disaster has occurred. We need your support again.`,
+      `A disaster (${disaster.title}) has occurred. Please consider donating again.`,
       disasterId,
       user.id,
-    ]);    
+    ]);
 
-    await db.query(`
+    if (notifications.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No donors found to notify." });
+    }
+
+    await db.query(
+      `
       INSERT INTO notifications (title, message, disaster_id, user_id)
       VALUES ?
-    `, [notifications]);
+    `,
+      [notifications]
+    );
 
     users.forEach((user) => {
       sendEmail(user.email, {
         subject: "Disaster Relief Needed",
-        body: `Hello, a disaster, ${disaster.title} has occurred and your help is needed.
-          Details:
-        
-          ${disaster.description}
-
-          Please consider donating again.
-        `,
+        body: `Hello,\n\n${disaster.description}\n\nPlease consider donating again.`,
       });
     });
 
-    await db.query(`UPDATE disasters SET notify_users = 1 WHERE id = ?`, [disasterId]);
+    await db.query(
+      `UPDATE disasters SET notify_users = 1 WHERE id = ?`,
+      [disasterId]
+    );
 
     res.status(200).json({ message: "Notifications sent." });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Notify Route Error:", err);
     res.status(500).json({ message: "Failed to notify users." });
   }
 });
+
 
 
 router.put("/update/:id", async (req, res) => {
